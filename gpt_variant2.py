@@ -26,7 +26,10 @@ last_target_time = start_time
 game_over = False
 end_message_shown = False
 end_message_time = 0
-lives = 3  # Количество жизней
+lives = 5  # Количество жизней
+missed_targets = 0  # Счетчик промахов
+missed_in_a_row = 0  # Количество промахов подряд
+target_hit = False  # Флаг для отслеживания попадания в мишень
 
 font = pygame.font.Font(None, 36)  # Загрузка стандартного шрифта размером 36
 
@@ -41,7 +44,7 @@ def display_lives():
     heart_icon = pygame.image.load('img/heart_icon.png')
     heart_width = 30
     heart_height = 30
-    x_offset = 10
+    x_offset = SCREEN_WIDTH - 10 - (heart_width + 5) * lives
     y_offset = 10
     for i in range(lives):
         screen.blit(heart_icon, (x_offset + i * (heart_width + 5), y_offset))
@@ -51,7 +54,8 @@ def game_over_message(message):
     text_rect = end_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
     screen.blit(end_text, text_rect)
     pygame.display.update()
-    pygame.time.wait(3000)  # Подождать 3 секунды перед выходом
+    pygame.time.wait(10000)  # Подождать 10 секунд перед выходом
+    pygame.quit()
     sys.exit()
 
 running = True
@@ -72,12 +76,22 @@ while running:
                 score += 1
                 spawn_target()
                 last_hit_time = current_time
+                missed_in_a_row = 0  # Сброс счетчика промахов подряд при попадании
+                target_hit = True
             else:
-                lives -= 1
-                if lives == 0:
-                    game_over_message("Ты проиграл! Будь внимательней")
+                missed_in_a_row += 1
+                if missed_in_a_row >= 5:
+                    lives -= 1
+                    missed_in_a_row = 0  # Сброс счетчика промахов подряд при потере жизни
+                    if lives == 0:
+                        game_over_message("Ты проиграл! Будь внимательней")
+                target_hit = False
 
-    if not game_over and current_time - last_target_time > 1500:
+    if not game_over and current_time - last_target_time > 2000:
+        if not target_hit:  # Если на мишень не нажали, убирается жизнь
+            lives -= 1
+            if lives == 0:
+                game_over_message("Ты проиграл! Будь внимательней")
         spawn_target()
         last_target_time = current_time
 
@@ -92,5 +106,7 @@ while running:
     pygame.display.update()
     clock.tick(60)  # Limit to 60 FPS
 
-pygame.quit()
-sys.exit()
+# Показываем количество очков в конце игры
+game_over_message("Количество очков: " + str(score))
+
+
