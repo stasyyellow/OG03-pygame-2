@@ -87,7 +87,7 @@ while running:
                         game_over_message("Ты проиграл! Будь внимательней")
                 target_hit = False
 
-    if not game_over and current_time - last_target_time > 2000:
+    if not game_over and current_time - last_target_time > 2500:
         if not target_hit:  # Если на мишень не нажали, убирается жизнь
             lives -= 1
             if lives == 0:
